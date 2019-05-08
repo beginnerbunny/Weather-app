@@ -15,6 +15,7 @@ class App extends React.Component {
       pressure: "",
       humidity: "",
       wind: "",
+      data: null
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -30,7 +31,7 @@ class App extends React.Component {
       return;
     }
  
-    function callWeatherApi(city) {
+    function callWeatherApi(city, callback) {
       var apiKey = "d35ec993dfcdc0c9b58035255050c061";
       var httpRequest = new XMLHttpRequest();
       var searchAddress =
@@ -43,16 +44,17 @@ class App extends React.Component {
       httpRequest.onload = function() {
         var data = JSON.parse(this.response);
         console.log("Inside", data);
-        return(data);
+        callback(data);
       };
       httpRequest.send();
     }
 
-    var data = callWeatherApi(this.state.cityName);
-    console.log("Outside", data);
-    this.setState(state => ({
-      cityName: state.cityName,
-    }));
+    callWeatherApi(this.state.cityName, (data) => {
+      this.setState(state => ({
+        cityName: state.cityName,
+        data
+      }));
+    });
   }
 
   render() {
