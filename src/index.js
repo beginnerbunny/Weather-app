@@ -1,6 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import moment from 'moment';
 import "./index.css";
 
 class App extends React.Component {
@@ -8,17 +7,19 @@ class App extends React.Component {
     super(props);
     this.state = {
       cityName: "",
-      temp: "", 
-      weather: "", 
-      weather_desc: "",
-      rain: "",
-      pressure: "",
+      temp: "",
+      weather: "",
       humidity: "",
       wind: "",
-      data: null
+      sunrise: "",
+      sunset: "",
+      status: false, 
+      weatherCode: 'default', //default
+      errorStatus: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.toggle = this.toggle.bind(this);
   }
 
   handleChange(e) {
@@ -30,7 +31,7 @@ class App extends React.Component {
     if (!this.state.cityName.length) {
       return;
     }
- 
+
     function callWeatherApi(city, callback) {
       var apiKey = "d35ec993dfcdc0c9b58035255050c061";
       var httpRequest = new XMLHttpRequest();
@@ -43,41 +44,99 @@ class App extends React.Component {
       httpRequest.open("GET", searchAddress, true);
       httpRequest.onload = function() {
         var data = JSON.parse(this.response);
-        console.log("Inside", data);
         callback(data);
       };
       httpRequest.send();
     }
 
-    callWeatherApi(this.state.cityName, (data) => {
+    callWeatherApi(this.state.cityName, data => {
+      if(data.cod === '404'){
+        this.setState({ status: false, errorStatus: true, cityName: '' });
+        return;
+      }
       this.setState(state => ({
-        cityName: state.cityName,
-        data
+        cityName: state.cityName.charAt(0).toUpperCase() + state.cityName.slice(1),
+        temp: parseInt(data.main["temp"], 10) - 273.0,
+        weather: data.weather["0"].main,
+        weather_desc: data.weather["0"].description,
+        humidity: data.main["humidity"],
+        wind: data.wind["speed"],
+        status: !state.status
       }));
     });
   }
 
+  toggle(e) {
+    e.preventDefault();
+    if (!this.state.cityName.length) {
+      return;
+    }
+
+    this.setState({
+      status: false,
+      cityName: "", 
+      errorStatus: false,
+    });
+  }
+
   render() {
-    var time = moment().format("MMM Do YYYY")
+    var weatherCode;
+    if(!this.state.status){
+      weatherCode = 'default';
+    }
+    else{
+      var temperature = this.state.temp;
+      if(temperature === ''){
+        weatherCode = 'default';
+      } else if (temperature < 5){
+        weatherCode = 'snow';
+      } else if(temperature >= 5 && temperature < 15){
+        weatherCode = 'temp-cold';
+      } else if(temperature >= 15 && temperature < 30){
+        weatherCode = 'temp-cool';
+      } else {
+        weatherCode = 'temp-hot';
+      }
+    }
     return (
-      <div className="weather-display">
+      <div className={weatherCode} id='page'>
+        <div className={this.state.status ? "input-div-disable" : "input-div"}>
+          <h1>Check Weather</h1>
           <input
             className="city-name"
             value={this.state.cityName || ""}
             onChange={this.handleChange}
+            autoFocus
           />
-        <button className="submit-button" onClick={this.handleSubmit}>Submit</button>
-        <div className="weather-info">
-          <p className="temperature">{this.state.temp}</p>
-          <p className="Weather">{this.state.weather}</p>
-          <p className="weather-desc">{this.state.weather_desc}</p>
-          <p className="rain">{this.state.rain}</p>
-          <p className="pressure">{this.state.pressure}</p>
-          <p className="humidity">{this.state.humidity}</p>
-          <p className="wind">{this.state.wind}</p>
+          <br />
+          <button className="submit-button" onClick={this.handleSubmit}>
+            Submit
+          </button>
+          <p className={this.state.errorStatus ? "error-message-show" : "error-message"}>City not found. Please enter correct City Name</p>
+        </div>
+        <div
+          className={
+            this.state.status ? "weather-info" : "weather-info-disable"
+          }
+        >
+        <p className="cityName-display">{this.state.cityName}</p>
+          <p className="temp">{this.state.temp} &#8451;</p>
+          <p className="weather-value">{this.state.weather}</p>
+          <div id="lower-box">
+            <div id="humidity-box">
+              <p>Humidity</p>
+              <p className="humidity">{this.state.humidity} %</p>
+            </div>
+            <div id="wind-box">
+              <p>Wind</p>
+              <p className="wind">{this.state.wind} m/s</p>
+            </div>
+          </div>
         </div>
         <div className="bottom">
-          <p className="time">{time}</p>
+          <button className="toggle" onClick={this.toggle}>
+            Try again?
+          </button>
         </div>
       </div>
     );
