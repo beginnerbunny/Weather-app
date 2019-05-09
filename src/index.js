@@ -52,6 +52,7 @@ class App extends React.Component {
     callWeatherApi(this.state.cityName, data => {
       if(data.cod === '404'){
         this.setState({ status: false, errorStatus: true, cityName: '' });
+        console.log("Error");
         return;
       }
       this.setState(state => ({

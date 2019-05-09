@@ -78,7 +78,7 @@ body {
   background-color: transparent;
   margin-top: 36px;
   border: 1px solid black;
-  width: 10%;
+  width: auto;
   position: relative;
   font-size: 18px;
   padding: 12px;
@@ -161,7 +161,6 @@ body {
   .submit-button {
     margin-top: 18px;
     padding: 12px;
-    width: auto;
     background: transparent;
     border: 1px solid black;
     outline: none;
@@ -176,7 +175,7 @@ body {
     padding: 6px;
   }
 
-  .weatherr-value{
+  .weather-value{
       font-size: 24px;
   }
 }
